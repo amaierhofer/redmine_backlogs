@@ -259,18 +259,34 @@ RB.Backlog = RB.Object.create({
 
   recalcVelocity: function(){
     var tracker_total = new Array();
+    var belowMax = true;
     total = 0;
+    var header = this.$.find('.header .description[fieldname="description"]');
+    var limit = parseInt(header.text(),10);
+
     this.getStories().each(function(index){
       var story = RB.$(this).data('this');
       var story_tracker = story.getTracker();
-      total += RB.$(this).data('this').getPoints();
+      var points = RB.$(this).data('this').getPoints();
+      jQuery(story.el).css('border-top', '');
+      if(belowMax && (total + points > limit)) { 
+        jQuery(story.el).css('border-top', '2px solid red');
+        belowMax = false;
+      }
+      total += points;
       if ('undefined' == typeof(tracker_total[story_tracker])) {
          tracker_total[story_tracker] = 0;
       }
       tracker_total[story_tracker] += story.getPoints();
     });
     var sprint_points = this.$.children('.header').children('.velocity');
-    sprint_points.text(total);
+    sprint_points.text(total + "/" + limit);
+    if (limit < total)  {
+      this.$.children('.header').children('.velocity').css('background-color', 'red');
+    } else {
+      this.$.children('.header').children('.velocity').css('background-color', '');
+    }
+
     var tracker_summary = "<b>Tracker statistics</b><br />";
     for (var t in tracker_total) {
        tracker_summary += '<b>' + t + ':</b> ' + tracker_total[t] + '<br />';
